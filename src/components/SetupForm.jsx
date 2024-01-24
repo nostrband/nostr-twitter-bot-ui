@@ -8,6 +8,8 @@ import axios from 'axios';
 import { useFormik } from 'formik';
 import { validationSchemaForRelays } from '../helpers/validations';
 
+const API_ENDPOINT = process.env.REACT_APP_API_ENDPOINT;
+
 const customStyles = (error) => ({
   control: (provided) => ({
     ...provided,
@@ -25,7 +27,7 @@ function SetupForm({ openModal, setOpenModal, username, resetUsername }) {
     validationSchema: validationSchemaForRelays,
     onSubmit: async (values) => {
       try {
-        const response = await axios.post('/our-endpoint', {
+        const response = await axios.post(`${API_ENDPOINT}/add`, {
           username,
           relays: values.selectedRelays.map((item) => item.value),
         });
