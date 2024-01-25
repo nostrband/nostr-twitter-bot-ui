@@ -44,7 +44,8 @@ function SetupForm({ openModal, setOpenModal, username, resetUsername }) {
   const [broadcastType, setBroadcastType] = useState('public');
   const formik = useFormik({
     initialValues: { selectedRelays: [] },
-    validationSchema: validationSchemaForRelays,
+    validationSchema:
+      broadcastType !== 'public' ? validationSchemaForRelays : null,
     onSubmit: async (values) => {
       try {
         const response = await axios.post(`${API_ENDPOINT}/add`, {
@@ -115,7 +116,9 @@ function SetupForm({ openModal, setOpenModal, username, resetUsername }) {
             onChange={(value) => formik.setFieldValue('selectedRelays', value)}
             value={formik.values.selectedRelays}
             styles={customStyles(
-              formik.errors.selectedRelays && formik.touched.selectedRelays
+              formik.errors.selectedRelays &&
+                formik.touched.selectedRelays &&
+                broadcastType !== 'public'
             )}
             options={[
               { value: 'wss://nos.lol', label: 'wss://nos.lol' },
