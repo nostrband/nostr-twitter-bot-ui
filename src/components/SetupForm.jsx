@@ -1,14 +1,13 @@
 import React from 'react';
 import Modal from './Modal';
-import { Button, styled, FormControl } from '@mui/material';
+import { Button, styled, FormControl, TextField } from '@mui/material';
 import CreatableSelect from 'react-select/creatable';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import axios from 'axios';
 import { useFormik } from 'formik';
 import { validationSchemaForRelays } from '../helpers/validations';
-
-const API_ENDPOINT = process.env.REACT_APP_API_ENDPOINT;
+import { API_ENDPOINT } from '../helpers/constants';
 
 const customStyles = (error) => ({
   control: (provided) => ({
@@ -20,6 +19,17 @@ const customStyles = (error) => ({
     },
   }),
 });
+
+const getTweetsFromHistory = async (username) => {
+  try {
+    const response = await axios.get(
+      `${API_ENDPOINT}/history?username=${username}`
+    );
+    return console.log(response, 'RESPONSE');
+  } catch (error) {
+    return console.log(error, 'ERROR');
+  }
+};
 
 function SetupForm({ openModal, setOpenModal, username, resetUsername }) {
   const formik = useFormik({
@@ -33,6 +43,7 @@ function SetupForm({ openModal, setOpenModal, username, resetUsername }) {
         });
         toast.success('Success!');
         resetUsername();
+        getTweetsFromHistory(username);
         setOpenModal(false);
       } catch (error) {
         toast.error('Error: ' + error.message);
@@ -50,11 +61,21 @@ function SetupForm({ openModal, setOpenModal, username, resetUsername }) {
             isMulti
             name="selectedRelays"
             classNamePrefix="select"
+            placeholder="Relays"
             onChange={(value) => formik.setFieldValue('selectedRelays', value)}
             value={formik.values.selectedRelays}
             styles={customStyles(
               formik.errors.selectedRelays && formik.touched.selectedRelays
             )}
+          />
+
+          <TextField
+            fullWidth
+            size="small"
+            variant="outlined"
+            value={formik.values.bunkerUrl}
+            onChange={(value) => formik.setFieldValue('bunkerUrl', value)}
+            placeholder="Bunker url"
           />
           <StyledButton size="small" type="submit" variant="contained">
             OK
@@ -72,6 +93,14 @@ const FormStyled = styled('form')`
   flex-direction: column;
   gap: 10px;
   font-family: 'Raleway', sans-serif;
+  .MuiInputBase-input {
+    font-family: 'Raleway', sans-serif;
+    padding-left: 10px;
+    &::placeholder {
+      color: #808080;
+      opacity: 1;
+    }
+  }
 `;
 
 const StyledButton = styled(Button)`
