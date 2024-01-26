@@ -17,6 +17,7 @@ import axios from "axios";
 import { useFormik } from "formik";
 import { validationSchemaForRelays } from "../helpers/validations";
 import { API_ENDPOINT } from "../helpers/constants";
+import { nip19 } from "nostr-tools";
 
 const customStyles = (error) => ({
   control: (provided) => ({
@@ -42,8 +43,10 @@ const getTweetsFromHistory = async (username) => {
 
 function SetupForm({ openModal, setOpenModal, username, resetUsername }) {
   const [broadcastType, setBroadcastType] = useState("public");
+  const [verify, setVerify] = useState(false);
+
   const formik = useFormik({
-    initialValues: { selectedRelays: [], bunkerUrl: "" },
+    initialValues: { selectedRelays: [], bunkerUrl: "", verifyTweetId: "" },
     validationSchema:
       broadcastType !== "public" ? validationSchemaForRelays : null,
     onSubmit: async (values) => {
@@ -53,15 +56,23 @@ function SetupForm({ openModal, setOpenModal, username, resetUsername }) {
           username,
           relays: values.selectedRelays.map((item) => item.value),
           bunkerUrl: values.bunkerUrl,
+          verifyTweetId: values.verifyTweetId,
         });
         toast.success("Success!");
+
+        // reset stuff
+        setVerify(false);
         resetUsername();
+
         getTweetsFromHistory(username);
+
         setOpenModal(false);
       } catch (error) {
         switch (error.response?.status) {
-          case 400:
           case 403:
+            setVerify(true);
+            break;
+          case 400:
           case 405:
           case 500:
             toast.error("Error: " + error.response.data);
@@ -81,12 +92,25 @@ function SetupForm({ openModal, setOpenModal, username, resetUsername }) {
     }
   };
 
+  let verifyText = "";
+  if (formik.values.bunkerUrl) {
+    try {
+      const url = new URL(formik.values.bunkerUrl);
+      const pubkey = url.pathname.split("//")[1];
+      verifyText = encodeURIComponent(
+        `Verifying my account on nostr\n\nMy Public key: "${nip19.npubEncode(
+          pubkey
+        )}"`
+      );
+    } catch (e) {}
+  }
+
   return (
     <div>
       <ToastContainer />
       <Modal open={openModal} onClose={() => setOpenModal(false)}>
         <FormStyled onSubmit={formik.handleSubmit}>
-          <input type="hidden" {...formik.getFieldProps("username")} />
+          {/* <input type="hidden" {...formik.getFieldProps("username")} /> */}
 
           <label>Publishing:</label>
           <RadioGroup
@@ -147,7 +171,7 @@ function SetupForm({ openModal, setOpenModal, username, resetUsername }) {
             size="small"
             variant="outlined"
             name="bunkerUrl"
-            value={formik.values.bunkerUrl.value}
+            value={formik.values.bunkerUrl}
             onChange={(value) =>
               formik.setFieldValue("bunkerUrl", value.target.value)
             }
@@ -157,13 +181,54 @@ function SetupForm({ openModal, setOpenModal, username, resetUsername }) {
             Leave blank to keep the existing connection.
           </span>
 
-          <StyledButton disabled={formik.isSubmitting} size="small" type="submit" variant="contained">
+          {verify && !verifyText && <label>Provide a valid bunkerUrl!</label>}
+
+          {verify && verifyText && (
+            <>
+              <label>Verify your Twitter account:</label>
+              <span className="description-bunkerUrl">
+                You must verify that you own the <b>@{username}</b> account.
+                Click to{" "}
+                <a
+                  href={`https://twitter.com/intent/tweet?text=${verifyText}`}
+                  target="_blank"
+                >
+                  publish verification tweet
+                </a>
+                , then paste the tweet id below.
+              </span>
+
+              <label>Verification tweet id:</label>
+              <TextField
+                fullWidth
+                size="small"
+                variant="outlined"
+                name="verifyTweetId"
+                value={formik.values.verifyTweetId}
+                onChange={(value) =>
+                  formik.setFieldValue("verifyTweetId", value.target.value)
+                }
+                placeholder="1234.........789"
+              />
+              <span className="description-bunkerUrl">
+                Copy the tweet id after you post a verification tweet.
+              </span>
+            </>
+          )}
+
+          <StyledButton
+            disabled={formik.isSubmitting}
+            size="small"
+            type="submit"
+            variant="contained"
+          >
             Setup
           </StyledButton>
 
           {formik.isSubmitting && (
             <span className="description-bunkerUrl">
-              Connecting to your keys...<br/>
+              Connecting to your keys...
+              <br />
               Please confirm key access in your key storage app!
             </span>
           )}
