@@ -31,7 +31,7 @@ function App() {
           error={formik.touched.username && Boolean(formik.errors.username)}
         />
         <Button variant="contained" type="submit">
-          Setup
+          Next
         </Button>
       </FormStyled>
       <SetupForm
