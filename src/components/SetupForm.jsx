@@ -92,6 +92,11 @@ function SetupForm({ openModal, setOpenModal, username, resetUsername }) {
     }
   };
 
+  const handleClose = () => {
+    setVerify(false);
+    setOpenModal(false);
+  };
+
   let verifyText = "";
   if (formik.values.bunkerUrl) {
     try {
@@ -108,7 +113,7 @@ function SetupForm({ openModal, setOpenModal, username, resetUsername }) {
   return (
     <div>
       <ToastContainer />
-      <Modal open={openModal} onClose={() => setOpenModal(false)}>
+      <Modal open={openModal} onClose={handleClose}>
         <FormStyled onSubmit={formik.handleSubmit}>
           {/* <input type="hidden" {...formik.getFieldProps("username")} /> */}
 
