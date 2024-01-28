@@ -16,6 +16,8 @@ import { nip19 } from '@nostrband/nostr-tools';
 
 const Histories = () => {
   const { data, username } = useSelector((state) => state.histories.histories);
+  const test = useSelector((state) => console.log(state, 'STATE'));
+
   const navigate = useNavigate();
 
   const formatDate = (timestamp) => {
