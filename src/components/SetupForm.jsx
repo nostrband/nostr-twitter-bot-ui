@@ -17,6 +17,9 @@ import axios from 'axios';
 import { useFormik } from 'formik';
 import { validationSchemaForRelays } from '../helpers/validations';
 import { API_ENDPOINT } from '../helpers/constants';
+import { useNavigate } from 'react-router-dom';
+import { setHistories } from '../redux/historiesSlice';
+import { useDispatch } from 'react-redux';
 
 const customStyles = (error) => ({
   control: (provided) => ({
@@ -29,19 +32,22 @@ const customStyles = (error) => ({
   }),
 });
 
-const getTweetsFromHistory = async (username) => {
-  try {
-    const response = await axios.get(
-      `${API_ENDPOINT}/history?username=${username}`
-    );
-    return console.log(response, 'RESPONSE');
-  } catch (error) {
-    return console.log(error, 'ERROR');
-  }
-};
-
 function SetupForm({ openModal, setOpenModal, username, resetUsername }) {
   const [broadcastType, setBroadcastType] = useState('public');
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+
+  const getTweetsFromHistory = async (username) => {
+    try {
+      const { data } = await axios.get(
+        `${API_ENDPOINT}/history?username=${username}`
+      );
+      dispatch(setHistories({ histories: data, username }));
+    } catch (error) {
+      return console.log(error, 'ERROR');
+    }
+  };
+
   const formik = useFormik({
     initialValues: { selectedRelays: [], bunkerUrl: '' },
     validationSchema:
@@ -57,6 +63,7 @@ function SetupForm({ openModal, setOpenModal, username, resetUsername }) {
         resetUsername();
         getTweetsFromHistory(username);
         setOpenModal(false);
+        navigate('/history');
       } catch (error) {
         switch (error.response?.status) {
           case 400:
