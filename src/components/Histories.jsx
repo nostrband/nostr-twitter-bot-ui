@@ -11,13 +11,13 @@ import styled from '@emotion/styled';
 import OpenIcon from '../assets/icons/OpenIcon';
 import BackIcon from '../assets/icons/BackIcon';
 import { Button } from '@mui/material';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { nip19 } from '@nostrband/nostr-tools';
 
 const Histories = () => {
   const { data, username } = useSelector((state) => state.histories.histories);
-
   const navigate = useNavigate();
+  const { username: usernameParams } = useParams();
 
   const formatDate = (timestamp) => {
     const date = new Date(timestamp);
@@ -36,7 +36,7 @@ const Histories = () => {
       <Button onClick={() => navigate('/')} variant="contained" type="submit">
         <span className="go-back"> Go back</span> <BackIcon />
       </Button>
-      <h2>History of imported tweets for {username}:</h2>
+      <h2>History of imported tweets for {usernameParams}:</h2>
       <TableContainer component={Paper}>
         <Table sx={{ minWidth: 650 }} aria-label="simple table">
           <TableHead>
@@ -48,7 +48,7 @@ const Histories = () => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {data.length > 0 ? (
+            {usernameParams === username && data.length > 0 ? (
               data.map((history) => (
                 <TableRow
                   key={history.id}
