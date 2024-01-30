@@ -16,7 +16,6 @@ import { nip19 } from '@nostrband/nostr-tools';
 
 const Histories = () => {
   const { data, username } = useSelector((state) => state.histories.histories);
-  const test = useSelector((state) => console.log(state, 'STATE'));
 
   const navigate = useNavigate();
 
@@ -42,38 +41,49 @@ const Histories = () => {
         <Table sx={{ minWidth: 650 }} aria-label="simple table">
           <TableHead>
             <TableRow>
-              <TableCell>Tweet ID</TableCell>
-              <TableCell>Event ID</TableCell>
-              <TableCell>Timestamp</TableCell>
-              <TableCell align="center">Open</TableCell>
+              <StyledTableCell>Tweet ID</StyledTableCell>
+              <StyledTableCell>Event ID</StyledTableCell>
+              <StyledTableCell>Timestamp</StyledTableCell>
+              <StyledTableCell align="center">Open</StyledTableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {data.map((history) => (
-              <TableRow
-                key={history.id}
-                sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
-              >
-                <TableCell component="th" scope="row">
-                  {history.tweetId}
-                </TableCell>
-                <TableCell component="th" scope="row">
-                  {history.eventId}
-                </TableCell>
-                <TableCell>{formatDate(history.timestamp)}</TableCell>
-                <TableCell align="center">
-                  <a
-                    className="link"
-                    href={`https://nostrapp.link/${nip19.noteEncode(
-                      history.eventId
-                    )}`}
-                    target="_blank"
-                  >
-                    <OpenIcon />
-                  </a>
-                </TableCell>
+            {data.length > 0 ? (
+              data.map((history) => (
+                <TableRow
+                  key={history.id}
+                  sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+                >
+                  <StyledTableCell component="th" scope="row">
+                    {history.tweetId}
+                  </StyledTableCell>
+                  <StyledTableCell component="th" scope="row">
+                    {history.eventId}
+                  </StyledTableCell>
+                  <StyledTableCell>
+                    {formatDate(history.timestamp)}
+                  </StyledTableCell>
+                  <StyledTableCell align="center">
+                    <a
+                      className="link"
+                      href={`https://nostrapp.link/${nip19.noteEncode(
+                        history.eventId
+                      )}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <OpenIcon />
+                    </a>
+                  </StyledTableCell>
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <StyledTableCell colSpan={4} style={{ textAlign: 'center' }}>
+                  Nothing yet
+                </StyledTableCell>
               </TableRow>
-            ))}
+            )}
           </TableBody>
         </Table>
       </TableContainer>
@@ -95,4 +105,12 @@ const Container = styled('div')`
     cursor: pointer;
     padding: 10px;
   }
+  .nothing-text {
+    text-align: center;
+    border: 1px solid red;
+  }
+`;
+
+const StyledTableCell = styled(TableCell)`
+  font-family: 'Open Sans', sans-serif;
 `;

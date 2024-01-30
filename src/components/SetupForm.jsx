@@ -64,11 +64,10 @@ function SetupForm({ openModal, setOpenModal, username, resetUsername }) {
           verifyTweetId: values.verifyTweetId,
         });
         toast.success('Success!');
-        navigate('/history');
+        navigate(`/${username}`);
         // reset stuff
         setVerify(false);
         resetUsername();
-
         getTweetsFromHistory(username);
 
         setOpenModal(false);
@@ -254,10 +253,10 @@ const FormStyled = styled('form')`
   display: flex;
   flex-direction: column;
   gap: 10px;
-  font-family: 'Raleway', sans-serif;
+  font-family: 'Open Sans', sans-serif;
   padding: 15px 5px 15px 5px;
   .MuiInputBase-input {
-    font-family: 'Raleway', sans-serif;
+    font-family: 'Open Sans', sans-serif;
     padding-left: 10px;
     &::placeholder {
       color: #808080;
@@ -272,7 +271,7 @@ const FormStyled = styled('form')`
     height: 30px;
   }
   .MuiTypography-root {
-    font-family: 'Raleway', sans-serif;
+    font-family: 'Open Sans', sans-serif;
   }
 `;
 

@@ -67,7 +67,7 @@ const Container = styled('div')`
   flex-direction: column;
   align-items: center;
   padding: 50px 0 0 0;
-  font-family: 'Raleway', sans-serif;
+  font-family: 'Open Sans', sans-serif;
 `;
 
 const ContainerForm = styled('div')`
