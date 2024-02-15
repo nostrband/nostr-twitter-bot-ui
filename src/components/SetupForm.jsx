@@ -198,7 +198,7 @@ function SetupForm({ openModal, setOpenModal, username, resetUsername }) {
                 You must verify that you own the <b>@{username}</b> account.
                 Click to{' '}
                 <Link
-                  href={`https://twitter.com/intent/tweet?text=${verifyText}`}
+                  to={`https://twitter.com/intent/tweet?text=${verifyText}`}
                   target="_blank"
                 >
                   publish verification tweet
