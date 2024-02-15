@@ -1,16 +1,16 @@
-import { useFormik } from 'formik';
-import { validationShemaForUsername } from '../helpers/validations';
-import { useState } from 'react';
-import { Button, TextField, styled } from '@mui/material';
-import SetupForm from '../components/SetupForm';
-import twitterLogo from '../assets/images/twitterLogo.png';
-import nostrLogo from '../assets/images/nostrLogo.png';
+import { useFormik } from "formik";
+import { validationShemaForUsername } from "../helpers/validations";
+import { useState } from "react";
+import { Button, TextField, styled } from "@mui/material";
+import SetupForm from "../components/SetupForm";
+import twitterLogo from "../assets/images/twitterLogo.png";
+import nostrLogo from "../assets/images/nostrLogo.png";
 
 function AddUser() {
   const [openModal, setOpenModal] = useState(false);
 
   const formik = useFormik({
-    initialValues: { username: '' },
+    initialValues: { username: "" },
     validationSchema: validationShemaForUsername,
     onSubmit: () => {
       setOpenModal(true);
@@ -18,16 +18,20 @@ function AddUser() {
   });
 
   const resetUsername = () => {
-    formik.setFieldValue('username', '', false);
+    formik.setFieldValue("username", "", false);
   };
 
   return (
     <Container>
       <ContainerLogo className="container-logo">
-        <img className="twitter-logo" src={twitterLogo} />
+        <img alt='Twitter' className="twitter-logo" src={twitterLogo} />
         <strong>to</strong>
-        <img className="nostr-logo" src={nostrLogo} />
+        <img alt='Nostr' className="nostr-logo" src={nostrLogo} />
       </ContainerLogo>
+
+      <ContainerHeader>
+        Cross-post your tweets to Nostr
+      </ContainerHeader>
 
       <ContainerForm>
         <FormStyled onSubmit={formik.handleSubmit}>
@@ -35,8 +39,8 @@ function AddUser() {
             fullWidth
             size="small"
             variant="outlined"
-            placeholder="Username"
-            {...formik.getFieldProps('username')}
+            placeholder="Your Twitter username"
+            {...formik.getFieldProps("username")}
             error={formik.touched.username && Boolean(formik.errors.username)}
           />
           <Button variant="contained" type="submit">
@@ -50,33 +54,53 @@ function AddUser() {
           username={formik.values.username}
         />
       </ContainerForm>
+
+      <ContainerFooter>
+        <a href="https://github.com/nostrband/nostr-twitter-bot-ui">
+          Open-source
+        </a>{" "}
+        service by <a href="https://nostr.band">Nostr.Band</a>.
+      </ContainerFooter>
     </Container>
   );
 }
 
 export default AddUser;
 
-const FormStyled = styled('form')`
-  width: 400px;
+const FormStyled = styled("form")`
+  width: 300px;
   display: flex;
   gap: 10px;
 `;
 
-const Container = styled('div')`
+const Container = styled("div")`
   display: flex;
   flex-direction: column;
   align-items: center;
   padding: 50px 0 0 0;
-  font-family: 'Open Sans', sans-serif;
+  font-family: "Open Sans", sans-serif;
 `;
 
-const ContainerForm = styled('div')`
+const ContainerHeader = styled("div")`
+  justify-content: center;
+  padding: 30px 0 0 0;
+  font-size: larger;
+`;
+
+const ContainerForm = styled("div")`
   display: flex;
   justify-content: center;
   padding: 30px 0 0 0;
 `;
 
-const ContainerLogo = styled('div')`
+const ContainerFooter = styled("div")`
+  justify-content: center;
+  padding: 50px 0 0 0;
+  font-size: smaller;
+  color: grey;
+`;
+
+const ContainerLogo = styled("div")`
   display: flex;
   align-items: center;
   gap: 7px;

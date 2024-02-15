@@ -1,11 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import Modal from './Modal';
 import {
   Button,
   styled,
-  FormControl,
   TextField,
-  FormLabel,
   RadioGroup,
   FormControlLabel,
   Radio,
@@ -18,7 +16,7 @@ import { useFormik } from 'formik';
 import { validationSchemaForRelays } from '../helpers/validations';
 import { API_ENDPOINT } from '../helpers/constants';
 import { nip19 } from 'nostr-tools';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { setHistories } from '../redux/historiesSlice';
 
@@ -57,7 +55,7 @@ function SetupForm({ openModal, setOpenModal, username, resetUsername }) {
     onSubmit: async (values) => {
       try {
         console.log({ values });
-        const response = await axios.post(`${API_ENDPOINT}/add`, {
+        await axios.post(`${API_ENDPOINT}/add`, {
           username,
           relays: values.selectedRelays.map((item) => item.value),
           bunkerUrl: values.bunkerUrl,
@@ -187,7 +185,8 @@ function SetupForm({ openModal, setOpenModal, username, resetUsername }) {
             placeholder="Bunker url"
           />
           <span className="description-bunkerUrl">
-            Leave blank to keep the existing connection.
+            Leave blank to keep the existing connection. 
+            Try <Link to='https://nsec.app' target="_blank">nsec.app</Link> to provide safe access to your keys.
           </span>
 
           {verify && !verifyText && <label>Provide a valid bunkerUrl!</label>}
@@ -198,12 +197,12 @@ function SetupForm({ openModal, setOpenModal, username, resetUsername }) {
               <span className="description-bunkerUrl">
                 You must verify that you own the <b>@{username}</b> account.
                 Click to{' '}
-                <a
+                <Link
                   href={`https://twitter.com/intent/tweet?text=${verifyText}`}
                   target="_blank"
                 >
                   publish verification tweet
-                </a>
+                </Link>
                 , then paste the tweet id below.
               </span>
 

@@ -23,7 +23,7 @@ const StyledBox = styled(Box)`
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: ${(props) => (props.fullWidth ? props.fullWidth : '425px')};
+  width: ${(props) => (props.fullWidth ? props.fullWidth : '325px')};
   background-color: white;
   border-radius: 8px;
   padding: 15px;
