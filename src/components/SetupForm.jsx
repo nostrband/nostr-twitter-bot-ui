@@ -157,6 +157,10 @@ function SetupForm({ openModal, setOpenModal, username, resetUsername }) {
                 broadcastType !== "public"
             )}
             options={[
+              {
+                value: "wss://testrelay.nostrapps.org",
+                label: "wss://testrelay.nostrapps.org",
+              },
               { value: "wss://nos.lol", label: "wss://nos.lol" },
               { value: "wss://relay.exit.pub", label: "wss://relay.exit.pub" },
               {
