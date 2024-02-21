@@ -41,10 +41,18 @@ function AddUser() {
   useEffect(() => {
     const load = async () => {
       const { data: pubkey } = nip19.decode(npub);
-      const profile = await ndk.fetchEvent({
+      const profiles = await ndk.fetchEvents({
         kinds: [0],
         authors: [pubkey],
       });
+      // console.log({ profiles });
+      let profile = null
+      for (const p of profiles.values()) {
+        if (!profile || profile.created_at < p.created_at)
+          profile = p;
+      }
+      // console.log({ profile });
+
       if (profile) {
         try {
           profile.info = JSON.parse(profile.content);
