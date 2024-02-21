@@ -12,7 +12,7 @@ initNostrLogin({
 });
 
 export const ndk = new NDK({
-  explicitRelayUrls: ["wss://relay.nostr.band", "wss://nos.lol"],
+  explicitRelayUrls: ["wss://relay.nostr.band", "wss://nos.lol", "wss://relay.damus.io"],
 });
 ndk.connect();
 
