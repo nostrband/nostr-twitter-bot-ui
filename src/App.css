@@ -1,3 +1,5 @@
 .root {
   font-family: 'Open Sans', sans-serif;
+  max-width: 300px;
+  margin: auto;
 }

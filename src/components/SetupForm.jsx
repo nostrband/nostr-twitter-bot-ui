@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import Modal from './Modal';
+import React, { useState } from "react";
+import Modal from "./Modal";
 import {
   Button,
   styled,
@@ -7,80 +7,87 @@ import {
   RadioGroup,
   FormControlLabel,
   Radio,
-} from '@mui/material';
-import CreatableSelect from 'react-select/creatable';
-import { toast, ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
-import axios from 'axios';
-import { useFormik } from 'formik';
-import { validationSchemaForRelays } from '../helpers/validations';
-import { API_ENDPOINT } from '../helpers/constants';
-import { nip19 } from 'nostr-tools';
-import { Link, useNavigate } from 'react-router-dom';
-import { useDispatch } from 'react-redux';
-import { setHistories } from '../redux/historiesSlice';
+} from "@mui/material";
+import CreatableSelect from "react-select/creatable";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+// import axios from "axios";
+import { useFormik } from "formik";
+import { validationSchemaForRelays } from "../helpers/validations";
+import { API_ENDPOINT } from "../helpers/constants";
+import { nip19 } from "nostr-tools";
+import { Link, useNavigate } from "react-router-dom";
+// import { useDispatch } from "react-redux";
+// import { setHistories } from "../redux/historiesSlice";
+import { getAuth } from "../helpers/auth";
+import { sendPostAuthd } from "../helpers/nip98";
 
 const customStyles = (error) => ({
   control: (provided) => ({
     ...provided,
-    borderColor: error ? 'red' : provided.borderColor,
-    boxShadow: error ? '0 0 0 1px red' : provided.boxShadow,
-    '&:hover': {
-      borderColor: error ? 'red' : provided.borderColor,
+    borderColor: error ? "red" : provided.borderColor,
+    boxShadow: error ? "0 0 0 1px red" : provided.boxShadow,
+    "&:hover": {
+      borderColor: error ? "red" : provided.borderColor,
     },
   }),
 });
 
 function SetupForm({ openModal, setOpenModal, username, resetUsername }) {
-  const [broadcastType, setBroadcastType] = useState('public');
+  const [broadcastType, setBroadcastType] = useState("public");
   const [verify, setVerify] = useState(false);
   const navigate = useNavigate();
-  const dispatch = useDispatch();
 
-  const getTweetsFromHistory = async (username) => {
-    try {
-      const { data } = await axios.get(
-        `${API_ENDPOINT}/history?username=${username}`
-      );
-      dispatch(setHistories({ username, histories: data }));
-    } catch (error) {
-      return console.log(error, 'ERROR');
-    }
-  };
+  const auth = getAuth();
 
   const formik = useFormik({
-    initialValues: { selectedRelays: [], bunkerUrl: '', verifyTweetId: '' },
+    initialValues: { selectedRelays: [], bunkerUrl: "", verifyTweetLink: "" },
     validationSchema:
-      broadcastType !== 'public' ? validationSchemaForRelays : null,
+      broadcastType !== "public" ? validationSchemaForRelays : null,
     onSubmit: async (values) => {
       try {
         console.log({ values });
-        await axios.post(`${API_ENDPOINT}/add`, {
-          username,
-          relays: values.selectedRelays.map((item) => item.value),
-          bunkerUrl: values.bunkerUrl,
-          verifyTweetId: values.verifyTweetId,
+
+        const { data: pubkey } = nip19.decode(auth.npub);
+        const bunkerUrl = `bunker://${pubkey}?relay=${auth.relays[0]}`;
+        await sendPostAuthd({
+          url: `${API_ENDPOINT}/add`,
+          method: "POST",
+          body: JSON.stringify({
+            username,
+            relays: values.selectedRelays.map((item) => item.value),
+            bunkerUrl: bunkerUrl,
+            bunkerNsec: auth.localNsec,
+            verifyTweetId: values.verifyTweetLink,
+          }),
         });
-        toast.success('Success!');
+        // await axios.post(`${API_ENDPOINT}/add`, {
+        //   username,
+        //   relays: values.selectedRelays.map((item) => item.value),
+        //   bunkerUrl: values.bunkerUrl,
+        //   verifyTweetId: values.verifyTweetLink,
+        // });
+        toast.success("Success!");
         navigate(`/${username}`);
         // reset stuff
         setVerify(false);
         resetUsername();
-        getTweetsFromHistory(username);
+        // getTweetsFromHistory(username);
 
         setOpenModal(false);
       } catch (error) {
-        switch (error.response?.status) {
-          case 403:
+        switch (error.cause?.status) {
+          case 401:
             setVerify(true);
             break;
           case 400:
+          case 403:
           case 405:
           case 500:
-            toast.error('Error: ' + error.response.data);
+            toast.error("Error: " + error.cause?.body);
             break;
           default:
-            toast.error('Error: ' + error.message);
+            toast.error("Error: " + error.message);
         }
         console.log({ error });
       }
@@ -89,8 +96,8 @@ function SetupForm({ openModal, setOpenModal, username, resetUsername }) {
 
   const handleBroadcastTypeChange = (event) => {
     setBroadcastType(event.target.value);
-    if (event.target.value === 'public') {
-      formik.setFieldValue('selectedRelays', []);
+    if (event.target.value === "public") {
+      formik.setFieldValue("selectedRelays", []);
     }
   };
 
@@ -99,15 +106,11 @@ function SetupForm({ openModal, setOpenModal, username, resetUsername }) {
     setOpenModal(false);
   };
 
-  let verifyText = '';
-  if (formik.values.bunkerUrl) {
+  let verifyText = "";
+  if (auth) {
     try {
-      const url = new URL(formik.values.bunkerUrl);
-      const pubkey = url.pathname.split('//')[1];
       verifyText = encodeURIComponent(
-        `Verifying my account on nostr\n\nMy Public key: "${nip19.npubEncode(
-          pubkey
-        )}"`
+        `Verifying my account on nostr\n\nMy Public key: "${auth.npub}"`
       );
     } catch (e) {}
   }
@@ -139,40 +142,40 @@ function SetupForm({ openModal, setOpenModal, username, resetUsername }) {
             />
           </RadioGroup>
 
-          <label>Relays:</label>
+          {/* <label>Relays:</label> */}
           <CreatableSelect
             isMulti
-            isDisabled={broadcastType === 'public'}
+            isDisabled={broadcastType === "public"}
             name="selectedRelays"
             classNamePrefix="select"
             placeholder="Enter relay urls"
-            onChange={(value) => formik.setFieldValue('selectedRelays', value)}
+            onChange={(value) => formik.setFieldValue("selectedRelays", value)}
             value={formik.values.selectedRelays}
             styles={customStyles(
               formik.errors.selectedRelays &&
                 formik.touched.selectedRelays &&
-                broadcastType !== 'public'
+                broadcastType !== "public"
             )}
             options={[
-              { value: 'wss://nos.lol', label: 'wss://nos.lol' },
-              { value: 'wss://relay.exit.pub', label: 'wss://relay.exit.pub' },
+              { value: "wss://nos.lol", label: "wss://nos.lol" },
+              { value: "wss://relay.exit.pub", label: "wss://relay.exit.pub" },
               {
-                value: 'wss://nostr.mutinywallet.com',
-                label: 'wss://nostr.mutinywallet.com',
+                value: "wss://nostr.mutinywallet.com",
+                label: "wss://nostr.mutinywallet.com",
               },
-              { value: 'wss://relay.damus.io', label: 'wss://relay.damus.io' },
+              { value: "wss://relay.damus.io", label: "wss://relay.damus.io" },
               {
-                value: 'wss://relay.nostr.band',
-                label: 'wss://relay.nostr.band',
+                value: "wss://relay.nostr.band",
+                label: "wss://relay.nostr.band",
               },
               {
-                value: 'wss://nostr.mom',
-                label: 'wss://nostr.mom',
+                value: "wss://nostr.mom",
+                label: "wss://nostr.mom",
               },
             ]}
           />
 
-          <label>Connect to your keys:</label>
+          {/* <label>Connect to your keys:</label>
           <TextField
             fullWidth
             size="small"
@@ -187,39 +190,41 @@ function SetupForm({ openModal, setOpenModal, username, resetUsername }) {
           <span className="description-bunkerUrl">
             Leave blank to keep the existing connection. 
             Try <Link to='https://nsec.app' target="_blank">nsec.app</Link> to provide safe access to your keys.
-          </span>
+          </span> */}
 
-          {verify && !verifyText && <label>Provide a valid bunkerUrl!</label>}
+          {/* {verify && !verifyText && <label>Provide a valid bunkerUrl!</label>} */}
 
-          {verify && verifyText && (
+          {verify && (
             <>
-              <label>Verify your Twitter account:</label>
+              <label style={{ marginTop: "0.5em" }}>
+                Verify your Twitter account:
+              </label>
               <span className="description-bunkerUrl">
                 You must verify that you own the <b>@{username}</b> account.
-                Click to{' '}
+                Click to{" "}
                 <Link
                   to={`https://twitter.com/intent/tweet?text=${verifyText}`}
                   target="_blank"
                 >
                   publish verification tweet
                 </Link>
-                , then paste the tweet id below.
+                , then paste the tweet link below.
               </span>
 
-              <label>Verification tweet id:</label>
+              <label>Verification tweet link:</label>
               <TextField
-                fullWidth
+                // fullWidth
                 size="small"
                 variant="outlined"
-                name="verifyTweetId"
-                value={formik.values.verifyTweetId}
+                name="verifyTweetLink"
+                value={formik.values.verifyTweetLink}
                 onChange={(value) =>
-                  formik.setFieldValue('verifyTweetId', value.target.value)
+                  formik.setFieldValue("verifyTweetLink", value.target.value)
                 }
-                placeholder="1234.........789"
+                placeholder={`https://twitter.com/${username}/status/123......789`}
               />
               <span className="description-bunkerUrl">
-                Copy the tweet id after you post a verification tweet.
+                Paste the tweet link after you post a verification tweet.
               </span>
             </>
           )}
@@ -228,9 +233,9 @@ function SetupForm({ openModal, setOpenModal, username, resetUsername }) {
             disabled={formik.isSubmitting}
             size="small"
             type="submit"
-            variant="contained"
+            variant="outlined"
           >
-            Setup
+            Save
           </StyledButton>
 
           {formik.isSubmitting && (
@@ -248,14 +253,14 @@ function SetupForm({ openModal, setOpenModal, username, resetUsername }) {
 
 export default SetupForm;
 
-const FormStyled = styled('form')`
+const FormStyled = styled("form")`
   display: flex;
   flex-direction: column;
   gap: 10px;
-  font-family: 'Open Sans', sans-serif;
+  font-family: "Open Sans", sans-serif;
   padding: 15px 5px 15px 5px;
   .MuiInputBase-input {
-    font-family: 'Open Sans', sans-serif;
+    font-family: "Open Sans", sans-serif;
     padding-left: 10px;
     &::placeholder {
       color: #808080;
@@ -270,7 +275,7 @@ const FormStyled = styled('form')`
     height: 30px;
   }
   .MuiTypography-root {
-    font-family: 'Open Sans', sans-serif;
+    font-family: "Open Sans", sans-serif;
   }
 `;
 
